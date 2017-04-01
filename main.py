@@ -49,18 +49,27 @@ user_form = """<form method=post>
                 <input type="submit"/>
                 </form>"""
 
+content = page_header + user_form + page_footer
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        content = page_header + user_form + page_footer
+
         self.response.write(content)
 
     def post(self):
+        error = ""
         username = self.request.get("username")
+        username = cgi.escape(username)
         password = self.request.get("password")
+        password = cgi.escape(password)
         verify = self.request.get("verify")
+        verify = cgi.escape(verify)
         email = self.request.get("email")
-        content = content = page_header + user_form + page_footer
-        self.response.write(content)
+        email = cgi.escape(email)
+        if not username:
+            self.response.write("Test")
+        else:
+            self.response.write(content)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
