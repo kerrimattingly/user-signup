@@ -17,9 +17,50 @@
 import webapp2
 import cgi
 
+page_header = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Signup</title>
+    <style type="text/css">
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>
+        Signup
+    </h1>
+"""
+page_footer = """
+</body>
+</html>
+"""
+user_form = """<form method=post>
+                <label>Username</label>
+                <input type="text" name="username"/><br>
+                <label>Password</label>
+                <input type="text" name="password"/><br>
+                <label>Verify Password</label>
+                <input type="text" name="verify"/><br>
+                <label>Email (optional)</label>
+                <input type="text" name="email"/><br>
+                <input type="submit"/>
+                </form>"""
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        self.response.write('Hello world!')
+        content = page_header + user_form + page_footer
+        self.response.write(content)
+
+    def post(self):
+        username = self.request.get("username")
+        password = self.request.get("password")
+        verify = self.request.get("verify")
+        email = self.request.get("email")
+        content = content = page_header + user_form + page_footer
+        self.response.write(content)
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler)
