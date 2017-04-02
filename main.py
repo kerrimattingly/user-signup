@@ -37,25 +37,31 @@ page_footer = """
 </body>
 </html>
 """
-user_form = """
-            <form action="/AddUser" method=post>
-                <label>Username</label>
-                <input type="text" name="username"/><br>
-                <br><label>Password</label>
-                <input type="password" name="password"/><br>
-                <br><label>Verify</label>
-                <input type="password" name="verify"/><br>
-                <br><label>Email (Optional)</label>
-                <input type="text" name="email"/><br>
-                <br><input type="submit"/>
-                </form>
-                """
-
-content = page_header + user_form + page_footer
 
 class MainHandler(webapp2.RequestHandler):
 
     def get(self):
+
+        user_form = """<form action='/AddUser' method=post>
+                        <label>Username
+                        <input type='text' name='username'/></label><br>
+                        <label>Password
+                        <input type='password' name='password'/></label><br>
+                        <label>Verify
+                        <input type='password' name='verify'/></label><br>
+                        <label>Email (Optional)
+                        <input type='text' name='email'/></label><br>
+                        <input type='submit'/>
+                        </form>
+                    """
+
+        error = self.request.get("error")
+        if error:
+            error_esc = cgi.escape(error, quote=True)
+            error_element = '<p class="error">' + error_esc + '</p>'
+        else:
+            error_element = ''
+        content = page_header + user_form + page_footer
         self.response.write(content)
 
 class AddUser(webapp2.RequestHandler):
@@ -72,7 +78,23 @@ class AddUser(webapp2.RequestHandler):
         email = cgi.escape(email)
 
         welcome_message = '<p>Welcome ' + username + '</p>'
-        self.response.write(welcome_message)
+
+        if not username:
+            blank_username = "Please enter a valid username."
+            self.redirect("/?error=" + blank_username)
+
+        elif not password:
+            blank_password = "Please create a valid password."
+            self.redirect('/?error=' + blank_password)
+
+        elif verify != password:
+            does_not_match = "Passwords do not match. Please reenter."
+            self.redirect('/?error=' + does_not_match)
+
+        else:
+            self.response.write(welcome_message)
+
+
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
