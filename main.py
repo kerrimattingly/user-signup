@@ -37,27 +37,31 @@ page_footer = """
 </body>
 </html>
 """
-user_form = """<form method=post>
+user_form = """
+            <form action="/AddUser" method=post>
                 <label>Username</label>
                 <input type="text" name="username"/><br>
-                <label>Password</label>
-                <input type="text" name="password"/><br>
-                <label>Verify Password</label>
-                <input type="text" name="verify"/><br>
-                <label>Email (optional)</label>
+                <br><label>Password</label>
+                <input type="password" name="password"/><br>
+                <br><label>Verify</label>
+                <input type="password" name="verify"/><br>
+                <br><label>Email (Optional)</label>
                 <input type="text" name="email"/><br>
-                <input type="submit"/>
-                </form>"""
+                <br><input type="submit"/>
+                </form>
+                """
 
 content = page_header + user_form + page_footer
 
 class MainHandler(webapp2.RequestHandler):
-    def get(self):
 
+    def get(self):
         self.response.write(content)
 
+class AddUser(webapp2.RequestHandler):
+
     def post(self):
-        error = ""
+
         username = self.request.get("username")
         username = cgi.escape(username)
         password = self.request.get("password")
@@ -66,11 +70,11 @@ class MainHandler(webapp2.RequestHandler):
         verify = cgi.escape(verify)
         email = self.request.get("email")
         email = cgi.escape(email)
-        if not username:
-            self.response.write("Test")
-        else:
-            self.response.write(content)
+
+        welcome_message = '<p>Welcome ' + username + '</p>'
+        self.response.write(welcome_message)
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+    ('/', MainHandler),
+    ('/AddUser', AddUser)
 ], debug=True)
