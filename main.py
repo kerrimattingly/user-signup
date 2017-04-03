@@ -16,17 +16,13 @@
 #
 import webapp2
 import cgi
+import re
 
 page_header = """
 <!DOCTYPE html>
 <html>
 <head>
     <title>Signup</title>
-    <style type="text/css">
-        .error {
-            color: red;
-        }
-    </style>
 </head>
 <body>
     <h1>
@@ -38,65 +34,73 @@ page_footer = """
 </html>
 """
 
+form = """
+        <form method="post">
+            <label>Username
+                <input type="text" name="username"/>
+                </label>
+                <br>
+            <label>Password
+                <input type="text" name="password"/>
+            </label>
+                <br>
+            <label>Verify
+                <input type="text" name="verify"/>
+            </label>
+                <br>
+            <label>Email (Optional)
+                <input type="text" name="email"/>
+            </label>
+                <br>
+                <br>
+            <div style="color:red">%(error)s</div>
+                <br>
+            <input type="submit"/>
+        </form>
+        """
+
+USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
+def valid_username(username):
+    return USER_RE.match(username)
+
+USER_RE = re.compile(r"^.{3,20}$")
+def valid_password(password):
+    return USER_RE.match(password)
+
+USER_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
+def valid_email(email):
+    return USER_RE.match(email)
+
 class MainHandler(webapp2.RequestHandler):
+
+    def write_form(self, error=""):
+        self.response.write(page_header +form % {"error": error} + page_footer)
+
+    def get(self):
+        self.write_form()
+
+
+
+    def post(self):
+        username = valid_username(self.request.get("username"))
+        password = valid_password(self.request.get("password"))
+        verify = self.request.get("verify")
+        email = valid_email(self.request.get("email"))
+
+        self.write_form("Error")
+
+
+class WelcomeHandler(webapp2.RequestHandler):
 
     def get(self):
 
-        user_form = """<form action='/AddUser' method=post>
-                        <label>Username
-                        <input type='text' name='username'/></label><br>
-                        <label>Password
-                        <input type='password' name='password'/></label><br>
-                        <label>Verify
-                        <input type='password' name='verify'/></label><br>
-                        <label>Email (Optional)
-                        <input type='text' name='email'/></label><br>
-                        <input type='submit'/>
-                        </form>
-                    """
+        self.response.write("Welcome")
 
-        error = self.request.get("error")
-        if error:
-            error_esc = cgi.escape(error, quote=True)
-            error_element = '<p class="error">' + error_esc + '</p>'
-        else:
-            error_element = ''
-        content = page_header + user_form + page_footer
-        self.response.write(content)
-
-class AddUser(webapp2.RequestHandler):
-
-    def post(self):
-
-        username = self.request.get("username")
-        username = cgi.escape(username)
-        password = self.request.get("password")
-        password = cgi.escape(password)
-        verify = self.request.get("verify")
-        verify = cgi.escape(verify)
-        email = self.request.get("email")
-        email = cgi.escape(email)
-
-        welcome_message = '<p>Welcome ' + username + '</p>'
-
-        if not username:
-            blank_username = "Please enter a valid username."
-            self.redirect("/?error=" + blank_username)
-
-        elif not password:
-            blank_password = "Please create a valid password."
-            self.redirect('/?error=' + blank_password)
-
-        elif verify != password:
-            does_not_match = "Passwords do not match. Please reenter."
-            self.redirect('/?error=' + does_not_match)
-
-        else:
-            self.response.write(welcome_message)
 
 
 
 app = webapp2.WSGIApplication([
     ('/', MainHandler),
-    ('/AddUser', AddUser)
+    ('/welcome', WelcomeHandler)
+
 ], debug=True)
