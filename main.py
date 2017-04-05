@@ -41,11 +41,11 @@ form = """
                 </label>
                 <br>
             <label>Password
-                <input type="text" name="password"/>
+                <input type="password" name="password"/>
             </label>
                 <br>
             <label>Verify
-                <input type="text" name="verify"/>
+                <input type="password" name="verify"/>
             </label>
                 <br>
             <label>Email (Optional)
@@ -61,40 +61,65 @@ form = """
 
 USER_RE = re.compile(r"^[a-zA-Z0-9_-]{3,20}$")
 def valid_username(username):
-    return USER_RE.match(username)
+    username = USER_RE.match(username)
+    return username
 
-USER_RE = re.compile(r"^.{3,20}$")
+PASSWORD_RE = re.compile(r"^.{3,20}$")
 def valid_password(password):
-    return USER_RE.match(password)
+    password = PASSWORD_RE.match(password)
+    return password
 
-USER_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
+#create a function that compares 2 strings
+PASSWORD_RE = re.compile(r"^.{3,20}$")
+def valid_verify(verify):
+    verify = PASSWORD_RE.match(verify)
+    return verify
+
+EMAIL_RE = re.compile(r"^[\S]+@[\S]+.[\S]+$")
 def valid_email(email):
-    return USER_RE.match(email)
+    email = EMAIL_RE.match(email)
+    return email
+
 
 class MainHandler(webapp2.RequestHandler):
 
     def write_form(self, error=""):
-        self.response.write(page_header +form % {"error": error} + page_footer)
+        self.response.write(page_header + form % {"error": error} + page_footer)
 
     def get(self):
         self.write_form()
 
-
-
     def post(self):
         username = valid_username(self.request.get("username"))
         password = valid_password(self.request.get("password"))
-        verify = self.request.get("verify")
+        verify = valid_verify(self.request.get("verify"))
         email = valid_email(self.request.get("email"))
 
-        self.write_form("Error")
+        if email:
+            email = valid_email(self.request.get("email"))
+
+        if not username:
+            self.write_form(error="That's not a valid username.")
+
+        elif not password:
+            self.write_form(error="That wasn't a valid password.")
+#even when i type in the same string i get the error message. can't see what's wrong
+        elif password != verify:
+            self.write_form(error="Your passwords didn't match.")
+
+        elif not email:
+            self.write_form(error="That's not a valid email.")
+
+        else:
+            self.redirect("/welcome")
 
 
 class WelcomeHandler(webapp2.RequestHandler):
 
     def get(self):
-
-        self.response.write("Welcome")
+        username = self.request.get("username")
+        welcome_message = "Welcome " + username
+        self.response.write(welcome_message)
 
 
 
