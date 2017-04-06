@@ -37,23 +37,21 @@ page_footer = """
 form = """
         <form method="post">
             <label>Username
-                <input type="text" name="username"/>
-                </label>
+                <input type="text" name="username" value="%(username)s"/>
+                </label><span style="color:red">%(error_username)s</span>
                 <br>
             <label>Password
                 <input type="password" name="password"/>
-            </label>
+            </label><span style="color:red">%(error_password)s</span>
                 <br>
             <label>Verify
                 <input type="password" name="verify"/>
-            </label>
+            </label><span style="color:red">%(error_verify)s</span>
                 <br>
             <label>Email (Optional)
-                <input type="text" name="email"/>
-            </label>
+                <input type="text" name="email" value="%(email)s"/>
+            </label><span style="color:red">%(error_email)s</span>
                 <br>
-                <br>
-            <div style="color:red">%(error)s</div>
                 <br>
             <input type="submit"/>
         </form>
@@ -83,42 +81,57 @@ def valid_email(email):
 
 class MainHandler(webapp2.RequestHandler):
 
-    def write_form(self, error=""):
-        self.response.write(page_header + form % {"error": error} + page_footer)
+    def write_form(self, error_username="", username="", error_password="", error_verify="", email="", error_email=""):
+        self.response.write(page_header + form % {"error_username": error_username, "username": username, "error_password": error_password, "error_verify": error_verify, "email": email, "error_email": error_email} + page_footer)
 
     def get(self):
         self.write_form()
 
     def post(self):
-        username = valid_username(self.request.get("username"))
-        password = valid_password(self.request.get("password"))
-        verify = valid_verify(self.request.get("verify"))
-        email = valid_email(self.request.get("email"))
+        username = self.request.get("username")
+        password = self.request.get("password")
+        verify = self.request.get("verify")
+        email = self.request.get("email")
+
+        have_error = False
+        error_username=""
+        error_password=""
+        error_verify=""
+        error_email=""
+        if not valid_username(username):
+            #self.write_form(error="That's not a valid username.", username=username)
+            have_error = True
+            error_username="That's not a valid username."
+
+        if not valid_password(password):
+            #self.write_form(error="That wasn't a valid password.")
+
+            have_error = True
+            error_password="That wasn't a valid password."
+#even when i type in the same string i get the error message. can't see what's wrong
+        if password != verify:
+            #self.write_form(error="Your passwords didn't match.")
+            have_error = True
+            error_verify="Your passwords didn't match."
 
         if email:
-            email = valid_email(self.request.get("email"))
+            if not valid_email(email):
+            #self.write_form(error="That's not a valid email.")
+                have_error = True
+                error_email="That's not a valid email."
 
-        if not username:
-            self.write_form(error="That's not a valid username.")
-
-        elif not password:
-            self.write_form(error="That wasn't a valid password.")
-#even when i type in the same string i get the error message. can't see what's wrong
-        elif password != verify:
-            self.write_form(error="Your passwords didn't match.")
-
-        elif not email:
-            self.write_form(error="That's not a valid email.")
+        if have_error:
+            self.write_form(username=username, error_username=error_username, error_password=error_password, error_verify=error_verify, error_email= error_email)
 
         else:
-            self.redirect("/welcome")
+            self.redirect("/welcome?username="+ username)
 
 
 class WelcomeHandler(webapp2.RequestHandler):
 
     def get(self):
-        username = self.request.get("username")
-        welcome_message = "Welcome " + username
+        welcome_username = self.request.get("username")
+        welcome_message = "Welcome " + welcome_username
         self.response.write(welcome_message)
 
 
